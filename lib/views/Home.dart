@@ -48,7 +48,7 @@ class Home extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CircleAvatar(
-                    backgroundImage: AssetImage(firstImage),
+                    backgroundImage: NetworkImage("https://img.freepik.com/photos-gratuite/portrait-homme-ghaneen_53876-148200.jpg?t=st=1724620184~exp=1724623784~hmac=930ab4db9a8f98fc385d136c6c9dc6c92338e4faa4b9f343cb21d5d56ba50a8d&w=1380"),
                     radius: 25,
                   ),
                   Container(
