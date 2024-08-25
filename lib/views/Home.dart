@@ -23,99 +23,124 @@ class Home extends StatelessWidget {
   final Rxn<Meal> randomMeal = Rxn<Meal>();
   final RxList<Meal> randomMeals = <Meal>[].obs;
 
-
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = MediaQuery.of(context).size;
+        final double padding = size.width * 0.05;
 
-    return Scaffold(
-      body: Container(
-        height: size.height,
-        width: size.width,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(fifthImage),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Scaffold(
+          body: Container(
+            height: size.height,
+            width: size.width,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(fifthImage),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding * 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage("https://img.freepik.com/photos-gratuite/portrait-homme-ghaneen_53876-148200.jpg?t=st=1724620184~exp=1724623784~hmac=930ab4db9a8f98fc385d136c6c9dc6c92338e4faa4b9f343cb21d5d56ba50a8d&w=1380"),
-                    radius: 25,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.search, color: Colors.black, size: 30),
-                      onPressed: () {
-                      },
-                    ),
-                  ),
+                  buildHeader(context),
+                  buildTitle(),
+                  buildCategoryFilter(context),
+                  SizedBox(height: padding),
+                  buildMealsDisplay(size),
+                  SizedBox(height: padding),
+                  buildBottomNavigationBar(size),
                 ],
               ),
-              Text(
-                homePageTitle,
-                style: titleStyle,
-              ),
-              Obx(() {
-                if (categorieController.isLoading.value) {
-                  return Center(child: CircularProgressIndicator());
-                } else {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: categorieController.categories.map((category) {
-                        return buildFilterButton(
-                          categoryTranslations[category.strCategory] ?? category.strCategory,
-                          englishCategory: category.strCategory,
-                          isSelected: selectedCategory.value == category.strCategory,
-                        );
-                      }).toList(),
-                    ),
-                  );
-                }
-              }),
-              SizedBox(height: 30),
-              Obx(() {
-                if (mealController.isLoading.value) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (randomMeals.isNotEmpty) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: randomMeals.map((meal) {
-                        return buildFoodCard(
-                          size,
-                          meal.strMeal,
-                          'Voir la recette du ${meal.strMeal.length > 15 ? meal.strMeal.substring(0, 15) + "..." : meal.strMeal}!',
-                          meal.strMealThumb,
-                        );
-                      }).toList(),
-                    ),
-                  );
-                } else {
-                  return Container();
-                }
-              }),
-              SizedBox(height: 20),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-              buildBottomNavigationBar(size),
-            ],
+  Widget buildHeader(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CircleAvatar(
+          backgroundImage: NetworkImage(
+            "https://img.freepik.com/photos-gratuite/portrait-homme-ghaneen_53876-148200.jpg?t=st=1724620184~exp=1724623784~hmac=930ab4db9a8f98fc385d136c6c9dc6c92338e4faa4b9f343cb21d5d56ba50a8d&w=1380",
+          ),
+          radius: size.width * 0.06,
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(50),
+          ),
+          child: IconButton(
+            icon: Icon(Icons.search, color: Colors.black, size: size.width * 0.07),
+            onPressed: () {},
           ),
         ),
-      ),
+      ],
     );
+  }
+
+  Widget buildTitle() {
+    return Text(
+      homePageTitle,
+      style: titleStyle,
+    );
+  }
+
+  Widget buildCategoryFilter(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Obx(() {
+      if (categorieController.isLoading.value) {
+        return Center(child: CircularProgressIndicator());
+      } else {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: categorieController.categories.map((category) {
+              return buildFilterButton(
+                categoryTranslations[category.strCategory] ?? category.strCategory,
+                englishCategory: category.strCategory,
+                isSelected: selectedCategory.value == category.strCategory,
+              );
+            }).toList(),
+          ),
+        );
+      }
+    });
+  }
+
+  Widget buildMealsDisplay(Size size) {
+    return Obx(() {
+      if (mealController.isLoading.value) {
+        return Center(child: CircularProgressIndicator());
+      } else if (randomMeals.isNotEmpty) {
+        return SizedBox(
+          height: size.height * 0.3,
+          child: PageView.builder(
+            controller: PageController(viewportFraction: 0.8),
+            itemCount: randomMeals.length,
+            itemBuilder: (context, index) {
+              final meal = randomMeals[index];
+              return buildFoodCard(
+                size,
+                meal.strMeal,
+                'Voir la recette du ${meal.strMeal.length > 15 ? meal.strMeal.substring(0, 15) + "..." : meal.strMeal}!',
+                meal.strMealThumb,
+              );
+            },
+          ),
+        );
+      } else {
+        return Container();
+      }
+    });
   }
 
   Widget buildFilterButton(String text, {bool isSelected = false, required String englishCategory}) {
@@ -125,7 +150,6 @@ class Home extends StatelessWidget {
         onPressed: () {
           selectedCategory.value = englishCategory;
           fetchRandomMeal(englishCategory);
-
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: isSelected ? primaryColor : Colors.white.withOpacity(0.3),
@@ -136,13 +160,14 @@ class Home extends StatelessWidget {
         child: Text(
           text,
           style: TextStyle(
-            color: isSelected ? Colors.white:Colors.black,
+            color: isSelected ? Colors.white : Colors.black,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
     );
   }
+
   void fetchRandomMeal(String category) {
     mealController.fetchMealsByCategory(category);
 
@@ -155,17 +180,12 @@ class Home extends StatelessWidget {
           randomIndexes.add(randomIndex);
         }
 
-
         randomMeals.assignAll(randomIndexes.map((index) => mealController.meals[index]).toList());
       } else {
         randomMeals.clear();
       }
     });
   }
-
-
-
-
 
   Widget buildFoodCard(Size size, String title, String description, String imagePath) {
     return Stack(
@@ -196,16 +216,16 @@ class Home extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 50),
+                      SizedBox(height: size.height * 0.05),
                       Text(
                         title.length > 10 ? title.substring(0, 10) : title,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 24,
+                          fontSize: size.width * 0.06,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      SizedBox(height: size.height * 0.01),
                       Text(
                         description,
                         style: descriptionStyle,
@@ -218,10 +238,10 @@ class Home extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: -15,
+          top: -size.height * 0.03,
           left: (size.width * 0.8) / 2 - 30,
           child: CircleAvatar(
-            radius: 50,
+            radius: size.width * 0.1,
             backgroundImage: NetworkImage(imagePath),
             backgroundColor: Colors.transparent,
           ),
@@ -229,5 +249,4 @@ class Home extends StatelessWidget {
       ],
     );
   }
-
 }
